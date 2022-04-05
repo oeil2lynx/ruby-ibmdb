@@ -2894,7 +2894,7 @@ SET WITH DEFAULT #{@adapter.quote(default)}"
 
 		
         if (offset.nil?)
-           retHash["endSegment"] = " FETCH FIRST #{limit} ROWS ONLY"
+           retHash["endSegment"] = " LIMIT #{limit}"
            return retHash
         end
 
@@ -2926,7 +2926,7 @@ SET WITH DEFAULT #{@adapter.quote(default)}"
         end
 
         if (offset.nil?)
-           return sql << " FETCH FIRST #{limit} ROWS ONLY"
+           return sql << " LIMIT #{limit}"
         end
 
         if(limit.nil?)
@@ -2954,7 +2954,7 @@ SET WITH DEFAULT #{@adapter.quote(default)}"
 
         if (offset.nil?)
            options[:paramArray] = []
-           return sql << " FETCH FIRST #{limit} ROWS ONLY"
+           return sql << " LIMIT #{limit} ROWS ONLY"
         end
     
         if(limit.nil?)
@@ -3143,21 +3143,21 @@ SET WITH DEFAULT #{@adapter.quote(default)}"
       def get_limit_offset_clauses(limit, offset)
         retHash = {"startSegment" => "", "endSegment" => ""}
         if (!limit.nil?)
-           retHash["endSegment"] = " FETCH FIRST #{limit} ROWS ONLY"
+           retHash["endSegment"] = " LIMIT #{limit}"
         end
         return retHash
       end
 
       def query_offset_limit(sql, offset, limit)
         if (!limit.nil?)
-           sql << " FETCH FIRST #{limit} ROWS ONLY"
+           sql << " LIMIT #{limit}"
         end
         return sql
       end
 
       def query_offset_limit!(sql, offset, limit, options)
         if (!limit.nil?)
-           sql << " FETCH FIRST #{limit} ROWS ONLY"
+           sql << " LIMIT #{limit}"
         end
         options[:paramArray] = []
       end
