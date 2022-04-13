@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   # Optional spec
   spec.author = 'IBM'
   spec.email = 'opendev@us.ibm.com'
-  spec.homepage = 'https://github.com/ibmdb/ruby-ibmdb'
+  spec.homepage = 'https://github.com/oeil2lynx/ruby-ibmdb'
   spec.required_ruby_version = '>= 2.5.0'
   spec.add_dependency('activerecord', '>= 5.0.7', '<=6.0.3')
   spec.requirements << 'ActiveRecord, at least 5.0.7'
