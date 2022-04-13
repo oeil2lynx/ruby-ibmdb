@@ -3491,9 +3491,9 @@ end
 
         
       def visit_Arel_Nodes_Limit o,collector
-	collector << " FETCH FIRST "
+				collector << " LIMIT "
         visit o.expr, collector
-	collector << " ROWS ONLY "
+				#collector << " ROWS ONLY "
       end
 
       def visit_Arel_Nodes_Offset o,collector
