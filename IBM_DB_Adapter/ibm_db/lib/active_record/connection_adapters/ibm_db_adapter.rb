@@ -52,7 +52,7 @@ module ActiveRecord
     class SchemaDumper
       private
         def header(stream)
-          stream.puts <<~HEADER          
+          stream.puts <<~HEADER
             ActiveRecord::Schema[#{ActiveRecord::Migration.current_version}].define(#{define_params}) do
           HEADER
         end
@@ -110,7 +110,7 @@ module ActiveRecord
         end
     end
   end
- 
+
   class Relation
 
     def insert(values)
@@ -148,9 +148,9 @@ module ActiveRecord
   end
 
   class Base
-    # Method required to handle LOBs and XML fields. 
+    # Method required to handle LOBs and XML fields.
     # An after save callback checks if a marker has been inserted through
-    # the insert or update, and then proceeds to update that record with 
+    # the insert or update, and then proceeds to update that record with
     # the actual large object through a prepared statement (param binding).
     after_save :handle_lobs
     def handle_lobs()
@@ -236,7 +236,7 @@ module ActiveRecord
     end # handle_lobs
 
 	private :handle_lobs
-	
+
     # Establishes a connection to a specified database using the credentials provided
     # with the +config+ argument. All the ActiveRecord objects will use this connection
     def self.ibm_db_connection(config)
@@ -309,7 +309,7 @@ module ActiveRecord
               conn_options[IBM_DB::SQL_ATTR_INFO_APPLNAME]   = value
             when :workstation     # Set connection's workstation info
               conn_options[IBM_DB::SQL_ATTR_INFO_WRKSTNNAME] = value
-          end    
+          end
         end
       end
 
@@ -323,7 +323,7 @@ module ActiveRecord
           # A net address connection requires a port. If no port has been specified, 50000 is used by default
           port = config[:port] || 50000
           # Connects to the database specified using the hostname, port, authentication type, username and password info
-          # Starting with DB2 9.1FP5 secure connections using SSL are supported. 
+          # Starting with DB2 9.1FP5 secure connections using SSL are supported.
           # On the client side using CLI this is supported from CLI version V95FP2 and onwards.
           # This feature is set by specifying SECURITY=SSL in the connection string.
           # Below connection string is constructed and SECURITY parameter is appended if the user has specified the :security option
@@ -363,28 +363,28 @@ module ActiveRecord
   end # class Base
 
   module ConnectionAdapters
-	class Column 
+	class Column
       def self.binary_to_string(value)
         puts_log "binary_to_string"
         # Returns a string removing the eventual BLOB scalar function
         value.to_s.gsub(/"SYSIBM"."BLOB"\('(.*)'\)/i,'\1')
       end
     end
-    	
+
 	module Quoting
       def lookup_cast_type_from_column(column) # :nodoc:
         lookup_cast_type(column.sql_type_metadata.sql_type)
       end
 	end
-	
+
 	module Savepoints
       def create_savepoint(name = current_savepoint_name)
         puts_log "create_savepoint"
 	    execute("SAVEPOINT #{name} ON ROLLBACK RETAIN CURSORS", "TRANSACTION")
 	  end
 	end
-	
-	
+
+
 	module ColumnDumper
       def prepare_column_options(column)
         puts_log "prepare_column_options"
@@ -397,11 +397,11 @@ module ActiveRecord
         if precision = schema_precision(column)
           spec[:precision] = precision
         end
-					
+
         if scale = schema_scale(column)
           spec[:scale] = scale
         end
-						
+
         default = schema_default(column) if column.has_default?
         spec[:default]   = default unless default.nil?
         spec[:null] = 'false' unless column.null
@@ -409,9 +409,9 @@ module ActiveRecord
         if collation = schema_collation(column)
           spec[:collation] = collation
         end
-						
+
         spec[:comment] = column.comment.inspect if column.comment.present?
-			
+
         spec
       end
 
@@ -427,7 +427,7 @@ module ActiveRecord
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true, null: false }
       end
-		
+
       def drop_table(table_name, options={})
         puts_log "drop_table - #{table_name}"
         if options[:if_exists]
@@ -436,12 +436,12 @@ module ActiveRecord
           execute("DROP TABLE #{quote_table_name(table_name)}", options)
         end
       end
-	   
+
       def create_table_definition(*args, **options)
         puts_log "create_table_definition"
         TableDefinition.new(self, *args, **options)
       end
-	  
+
 	end #end of Module SchemaStatements
 
     class IBM_DBColumn < ConnectionAdapters::Column # :nodoc:
@@ -462,11 +462,11 @@ module ActiveRecord
         puts_log "16"
         column(name, type, options.merge(primary_key: true))
       end
-	  
+
       ##class Table
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
-		  
+
         #Method to parse the passed arguments and create the ColumnDefinition object of the specified type
         def ibm_parse_column_attributes_args(type, *args)
           puts_log "ibm_parse_column_attributes_args"
@@ -479,7 +479,7 @@ module ActiveRecord
           end # end args.each
         end
         private :ibm_parse_column_attributes_args
-		
+
         #Method to support the new syntax of rails 2.0 migrations (short-hand definitions) for columns of type xml
         #This method is different as compared to def char (sql is being issued explicitly
         #as compared to def char where method column(which will generate the sql is being called)
@@ -547,7 +547,7 @@ module ActiveRecord
           puts_log "25"
 		  @base.native_database_types
 		end
-	 
+
 		#Method to parse the passed arguments and create the ColumnDefinition object of the specified type
 	    def ibm_parse_column_attributes_args(type, *args)
           puts_log "26"
@@ -561,7 +561,7 @@ module ActiveRecord
 		end
 		private :ibm_parse_column_attributes_args
 
-		#Method to support the new syntax of rails 2.0 migrations for columns of type xml 
+		#Method to support the new syntax of rails 2.0 migrations for columns of type xml
 		def xml(*args )
           puts_log "27"
 		  ibm_parse_column_attributes_args('xml', *args)
@@ -614,7 +614,7 @@ module ActiveRecord
           puts_log "34 column"
           name = name.to_s
           type = type.to_sym if type
-            
+
           if @columns_hash[name]
             if @columns_hash[name].primary_key?
               raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
@@ -625,7 +625,7 @@ module ActiveRecord
 
           # construct a column definition where @base is adaptor instance
 		  column = new_column_definition(name, type, **options)
-			
+
 		  # DB2 does not accept DEFAULT NULL option for XML
 		  # for table create, but does accept nullable option
 		  unless type.to_s == 'xml'
@@ -668,7 +668,7 @@ module ActiveRecord
     # The IBM_DB Adapter requires the native Ruby driver (ibm_db)
     # for IBM data servers (ibm_db.so).
     # +config+ the hash passed as an initializer argument content:
-    # == mandatory parameters 
+    # == mandatory parameters
     #   adapter:         'ibm_db'        // IBM_DB Adapter name
     #   username:        'db2user'       // data server (database) user
     #   password:        'secret'        // data server (database) password
@@ -684,17 +684,17 @@ module ActiveRecord
     #   port:            '50000'         // data server TCP/IP port number
     #   security:        'SSL'           // optional parameter enabling SSL encryption -
     #                                    // - Available only from CLI version V95fp2 and above
-    #   authentication:  'SERVER'        // AUTHENTICATION type which the client uses - 
+    #   authentication:  'SERVER'        // AUTHENTICATION type which the client uses -
     #                                    // - to connect to the database server. By default value is SERVER
     #   timeout:         10              // Specifies the time in seconds (0 - 32767) to wait for a reply from server -
     #                                    //- when trying to establish a connection before generating a timeout
     # == Parameterized Queries Support
-    #   parameterized:  false            // Specifies if the prepared statement support of 
+    #   parameterized:  false            // Specifies if the prepared statement support of
     #                                    //- the IBM_DB Adapter is to be turned on or off
-    # 
+    #
     # When schema is not specified, the username value is used instead.
     # The default setting of parameterized is false.
-    # 
+    #
     class IBM_DBAdapter < AbstractAdapter
       attr_reader :connection, :servertype
       attr_accessor :sql,:handle_lobs_triggered, :sql_parameter_values
@@ -746,7 +746,7 @@ module ActiveRecord
         @account          = conn_options[:account]      if conn_options.has_key?(:account)
         @application      = conn_options[:application]  if conn_options.has_key?(:application)
         @workstation      = conn_options[:workstation]  if conn_options.has_key?(:workstation)
-        
+
         @sql                  = []
         @sql_parameter_values = [] #Used only if pstmt support is turned on
 
@@ -821,12 +821,12 @@ module ActiveRecord
         if(@arelVersion >=  3 )
           @visitor = Arel::Visitors::IBM_DB.new self
         end
-		
-        if(config.has_key?(:parameterized) && config[:parameterized] == true)			 
+
+        if(config.has_key?(:parameterized) && config[:parameterized] == true)
           @pstmt_support_on = true
           @prepared_statements = true
           @set_quoted_literal_replacement = IBM_DB::QUOTED_LITERAL_REPLACEMENT_OFF
-        else		  
+        else
           @pstmt_support_on = false
           @prepared_statements = false
           @set_quoted_literal_replacement = IBM_DB::QUOTED_LITERAL_REPLACEMENT_ON
@@ -906,14 +906,14 @@ module ActiveRecord
         puts_log "visitor_for"
         Arel::Visitors::IBM_DB.new(pool)
       end
-    
+
 	  #Check Arel version
       begin
         @arelVersion = Arel::VERSION.to_i
       rescue
         @arelVersion = 0
       end
-	  if(@arelVersion < 6 )	  
+	  if(@arelVersion < 6 )
 		def to_sql(arel, binds = [])
 		  if arel.respond_to?(:ast)
 		    visitor.accept(arel.ast) do
@@ -938,15 +938,15 @@ module ActiveRecord
       def supports_foreign_keys?
         puts_log "supports_foreign_keys?"
         true
-      end	  
-      
+      end
+
       def supports_datetime_with_precision?
         puts_log "supports_datetime_with_precision?"
 	    true
       end
-	  
+
       # This Adapter supports DDL transactions.
-      # This means CREATE TABLE and other DDL statements can be carried out as a transaction. 
+      # This means CREATE TABLE and other DDL statements can be carried out as a transaction.
       # That is the statements executed can be ROLLED BACK in case of any error during the process.
       def supports_ddl_transactions?
         puts_log "supports_ddl_transactions?"
@@ -1073,7 +1073,7 @@ module ActiveRecord
         puts_log caller
         @servertype.setup_for_lob_table
         #Table definition is complete only when a unique index is created on the primarykey column for DB2 V8 on zOS
-        
+
         #create index on id column if options[:id] is nil or id ==true
         #else check if options[:primary_key]is not nil then create an unique index on that column
         if  !id.nil? || !primary_key.nil?
@@ -1089,7 +1089,7 @@ module ActiveRecord
         #Just incase if id holds any other data type other than primary_key we override it,
         #otherwise it misses "GENERATED BY DEFAULT AS IDENTITY (START WITH 1000)"
         if !id.nil? && id != false && primary_key.nil? && ActiveRecord::Base.primary_key_prefix_type.nil?
-          primary_key = :id          
+          primary_key = :id
           options[:auto_increment] = true if options[:auto_increment].nil? and (id == :integer or id == :bigint)
         end
 
@@ -1161,7 +1161,7 @@ module ActiveRecord
 
         cols = IBM_DB.resultCols(stmt)
 
-        if( stmt ) 
+        if( stmt )
           results = fetch_data(stmt)
           puts_log "Results = #{results}"
         end
@@ -1212,7 +1212,7 @@ module ActiveRecord
           fixtures.map { |fixture| build_fixture_sql([fixture], table_name) }
         end.compact
       end
-      
+
       def build_fixture_sql(fixtures, table_name)
         puts_log "build_fixture_sql"
         columns = schema_cache.columns_hash(table_name)
@@ -1284,23 +1284,23 @@ module ActiveRecord
               break
             end
           end
-		  
-          if item.at(1).nil? || 
-              item.at(1) == {} || 			  
+
+          if item.at(1).nil? ||
+              item.at(1) == {} ||
 			  (item.at(1) == '' && !(col.sql_type.to_s =~ /text|clob/i))
                 params << 'NULL'
-				
-		  elsif (!col.nil? &&  (col.sql_type.to_s =~ /blob|binary|clob|text|xml/i)  )			
-            #  Add a '?' for the parameter or a NULL if the value is nil or empty 
+
+		  elsif (!col.nil? &&  (col.sql_type.to_s =~ /blob|binary|clob|text|xml/i)  )
+            #  Add a '?' for the parameter or a NULL if the value is nil or empty
             # (except for a CLOB field where '' can be a value)
              insert_values << quote_value_for_pstmt(item.at(1))
              params << '?'
           else
             insert_values << quote_value_for_pstmt(item.at(1),col)
             params << '?'
-          end 
+          end
         end
-    
+
         insert_query << " VALUES ("+ params.join(',') + ")"
         unless stmt = IBM_DB.prepare(@connection, insert_query)
            error_msg = IBM_DB.getErrormsg( @connection, IBM_DB::DB_CONN )
@@ -1310,7 +1310,7 @@ module ActiveRecord
              raise StandardError.new('An unexpected error occurred during preparing SQL for fixture insert')
            end
         end
-    
+
         log(insert_query,'fixture insert') do
           unless IBM_DB.execute(stmt, insert_values)
             error_msg = IBM_DB.getErrormsg(stmt, IBM_DB::DB_STMT )
@@ -1369,7 +1369,7 @@ module ActiveRecord
         end
 
         ActiveRecord::Base.clear_query_caches_for_current_thread
-		        
+
 		if stmt = exec_insert_db2(sql, name, binds)
           begin
             @sql << sql
@@ -1496,10 +1496,10 @@ module ActiveRecord
           puts_log "#{caller}"
 
           stmt = @servertype.prepare(sql, name)
-          if prepare 
+          if prepare
             @statements[sql] = stmt
           end
-          
+
           puts_log "Statement = #{stmt}"
           log(sql, name, binds, param_array) do
             if( stmt )
@@ -1778,7 +1778,7 @@ module ActiveRecord
       #==============================================
       # SCHEMA STATEMENTS
       #==============================================
-	  	  
+
       # Returns a Hash of mappings from the abstract data types to the native
       # database types
       def native_database_types
@@ -1789,7 +1789,7 @@ module ActiveRecord
           :integer     => { :name => "integer" },
           :float       => { :name => "float" },
           :datetime    => { :name => "timestamp" },
-          :timestamp   => { :name => "timestamp" },		  
+          :timestamp   => { :name => "timestamp" },
           :time        => { :name => "time" },
           :date        => { :name => "date" },
           :binary      => { :name => "blob" },
@@ -1827,7 +1827,7 @@ module ActiveRecord
         puts_log "drop_database"
         connect_str = build_conn_str_for_dbops()
 
-        #Ensure connection is closed before trying to drop a database. 
+        #Ensure connection is closed before trying to drop a database.
         #As a connect call would have been made by call seeing connection in active
         disconnect!
 
@@ -1870,7 +1870,7 @@ module ActiveRecord
           raise "Could not create Database due to: #{error}"
         end
       end
-      
+
       def valid_type?(type)
         !native_database_types[type].nil?
       end
@@ -1995,14 +1995,14 @@ module ActiveRecord
       def table_alias_length
         128
       end
-	  
+
       # Retrieves table's metadata for a specified shema name
       def tables(name = nil)
         puts_log "tables"
         # Initializes the tables array
         tables = []
         # Retrieve table's metadata through IBM_DB driver
-        stmt = IBM_DB.tables(@connection, nil, 
+        stmt = IBM_DB.tables(@connection, nil,
                             @servertype.set_case(@schema))
         if(stmt)
           begin
@@ -2010,7 +2010,7 @@ module ActiveRecord
             while tab = IBM_DB.fetch_assoc(stmt)
               # Adds the lowercase table name to the array
               if(tab["table_type"]== 'TABLE')  #check, so that only tables are dumped,IBM_DB.tables also returns views,alias etc in the schema
-                tables << tab["table_name"].downcase    
+                tables << tab["table_name"].downcase
               end
             end
           rescue StandardError => fetch_error # Handle driver fetch errors
@@ -2050,7 +2050,7 @@ module ActiveRecord
             while tab = IBM_DB.fetch_assoc(stmt)
               # Adds the lowercase view's name to the array
               if(tab["table_type"]== 'V')  #check, so that only views are dumped,IBM_DB.tables also returns tables,alias etc in the schema
-                tables << tab["table_name"].downcase    
+                tables << tab["table_name"].downcase
               end
             end
           rescue StandardError => fetch_error # Handle driver fetch errors
@@ -2081,10 +2081,10 @@ module ActiveRecord
       def primary_key(table_name)
         puts_log "primary_key"
         pk_name = []
-        stmt = IBM_DB.primary_keys( @connection, nil, 
-                                    @servertype.set_case(@schema), 
+        stmt = IBM_DB.primary_keys( @connection, nil,
+                                    @servertype.set_case(@schema),
                                     @servertype.set_case(table_name.to_s))
-        if(stmt) 
+        if(stmt)
           begin
             while ( pk_index_row = IBM_DB.fetch_array(stmt) )
               puts_log "Primary_keys = #{pk_index_row}"
@@ -2132,29 +2132,29 @@ module ActiveRecord
         indexes = []
         pk_index = nil
         index_schema = []
-        
+
         #fetch the primary keys of the table using function primary_keys
         #TABLE_SCHEM:: pk_index[1]
         #TABLE_NAME:: pk_index[2]
         #COLUMN_NAME:: pk_index[3]
         #PK_NAME:: pk_index[5]
-        stmt = IBM_DB.primary_keys( @connection, nil, 
-                                   @servertype.set_case(@schema), 
+        stmt = IBM_DB.primary_keys( @connection, nil,
+                                   @servertype.set_case(@schema),
                                    @servertype.set_case(table_name))
         if(stmt)
           begin
             while ( pk_index_row = IBM_DB.fetch_array(stmt) )
               puts_log "Primary keys = #{pk_index_row}"
               puts_log "pk_index = #{pk_index}"
-              if pk_index_row[5] 
+              if pk_index_row[5]
                 pk_index_name = pk_index_row[5].downcase
                 pk_index_columns = [pk_index_row[3].downcase]           # COLUMN_NAME
-                if pk_index 
+                if pk_index
                   pk_index.columns << pk_index_columns
                 else
                   pk_index = IndexDefinition.new(table_name, pk_index_name, true, pk_index_columns)
                 end
-              end 
+              end
             end
           rescue StandardError => fetch_error # Handle driver fetch errors
             error_msg = IBM_DB.getErrormsg(stmt, IBM_DB::DB_STMT )
@@ -2182,8 +2182,8 @@ module ActiveRecord
         # "NON_UNIQUE:   #{index_stats[3]}"
         # "INDEX_NAME:   #{index_stats[5]}"
         # "COLUMN_NAME:  #{index_stats[8]}"
-        stmt = IBM_DB.statistics( @connection, nil, 
-                                  @servertype.set_case(@schema), 
+        stmt = IBM_DB.statistics( @connection, nil,
+                                  @servertype.set_case(@schema),
                                   @servertype.set_case(table_name), 1 )
         if(stmt)
           begin
@@ -2201,17 +2201,17 @@ module ActiveRecord
                      #index.columns = index.columns + index_columns
                      index.columns.concat index_columns
                      is_composite = true
-                  end 
+                  end
                   i = i+1
                 end
-              
-                unless is_composite 
+
+                unless is_composite
                   sql = "select remarks from syscat.indexes where tabname = #{quote(table_name.upcase)} and indname = #{quote(index_stats[5])}"
                   comment = single_value_from_rows(select_prepared(sql).rows)
 
                   indexes << IndexDefinition.new(table_name, index_name, index_unique, index_columns, comment: comment)
                   index_schema << index_qualifier
-                end 
+                end
               end
             end
           rescue StandardError => fetch_error # Handle driver fetch errors
@@ -2234,9 +2234,9 @@ module ActiveRecord
             raise StandardError.new('An unexpected error occurred during index retrieval')
           end
         end
-    
+
         # remove the primary key index entry.... should not be dumped by the dumper
-    
+
         puts_log "Indexes 1 = #{pk_index}"
         i = 0
         indexes.each do |index|
@@ -2244,7 +2244,7 @@ module ActiveRecord
             indexes.delete_at(i)
           end
           i = i+1
-        end 
+        end
         # Returns the indexes array
         puts_log "Indexes 2 = #{indexes}"
         return indexes
@@ -2329,7 +2329,7 @@ module ActiveRecord
             :rowid
         end
       end # method simplified_type
-	
+
       def extract_value_from_default(default)
         case default
         when /IDENTITY GENERATED BY DEFAULT/i
@@ -2351,23 +2351,23 @@ module ActiveRecord
           nil
         end
       end
- 
+
       # Returns an array of Column objects for the table specified by +table_name+
-      def columns(table_name)        
+      def columns(table_name)
         default_blob_length = 1048576
       # to_s required because it may be a symbol.
         puts_log "columns"
         puts_log caller
         table_name = @servertype.set_case(table_name.to_s)
-				
+
         # Checks if a blank table name has been given.
         # If so it returns an empty array
         return [] if table_name.strip.empty?
         # +columns+ will contain the resulting array
         columns = []
         # Statement required to access all the columns information
-        stmt = IBM_DB.columns( @connection, nil, 
-                                   @servertype.set_case(@schema), 
+        stmt = IBM_DB.columns( @connection, nil,
+                                   @servertype.set_case(@schema),
                                    @servertype.set_case(table_name) )
 #       sql = "select * from sysibm.sqlcolumns where table_name = #{quote(table_name.upcase)}"
         if @debug == true
@@ -2389,15 +2389,15 @@ module ActiveRecord
               column_type = col["type_name"].downcase
 
               # Assigns the field length (size) for the column
-			  
+
               if column_type =~ /integer|bigint/i
                 column_length = col["buffer_length"]
               else
                 column_length = col["column_size"]
               end
               column_scale = col["decimal_digits"]
-              # The initializer of the class Column, requires the +column_length+ to be declared 
-              # between brackets after the datatype(e.g VARCHAR(50)) for :string and :text types. 
+              # The initializer of the class Column, requires the +column_length+ to be declared
+              # between brackets after the datatype(e.g VARCHAR(50)) for :string and :text types.
               # If it's a "for bit data" field it does a subsitution in place, if not
               # it appends the (column_length) string on the supported data types
               if column_type.match(/decimal|numeric/)
@@ -2433,7 +2433,7 @@ module ActiveRecord
                       default_value[2] = ":"
                       default_value[5] = ":"
                     end
-                  end                  
+                  end
                   column_scale = nil
                   if !(column_type.match(/blob/i) and column_length != default_blob_length) and !column_type.match(/bigint/i)
                     column_length = nil
@@ -2449,7 +2449,7 @@ module ActiveRecord
 
                 default_function = extract_default_function(default_value, column_default_value)
 
-				sqltype_metadata = SqlTypeMetadata.new(					
+				sqltype_metadata = SqlTypeMetadata.new(
 					#sql_type: sql_type,
 					sql_type: column_type,
 					type: ruby_type,
@@ -2457,7 +2457,7 @@ module ActiveRecord
 					precision: precision,
 					scale: column_scale,
 				)
-				
+
 				columns << Column.new(column_name, default_value, sqltype_metadata, column_nullable, default_function, comment: col["remarks"])
               end
             end
@@ -2485,7 +2485,7 @@ module ActiveRecord
         puts_log "Inside def columns() #{columns}"
         return columns
       end
-	 
+
       def extract_precision(sql_type)
         $1.to_i if sql_type =~ /\((\d+)(,\d+)?\)/
       end
@@ -2498,21 +2498,21 @@ module ActiveRecord
         !default_value && %r{\w+\(.*\)|CURRENT_TIME|CURRENT_DATE|CURRENT_TIMESTAMP}.match?(default)
       end
 
-	  def foreign_keys(table_name)	  
+	  def foreign_keys(table_name)
         puts_log "foreign_keys #{table_name}"
-        #fetch the foreign keys of the table using function foreign_keys        
+        #fetch the foreign keys of the table using function foreign_keys
 		#PKTABLE_NAME::  fk_row[2] Name of the table containing the primary key.
-		#PKCOLUMN_NAME:: fk_row[3] Name of the column containing the primary key.		
+		#PKCOLUMN_NAME:: fk_row[3] Name of the column containing the primary key.
 		#FKTABLE_NAME::  fk_row[6] Name of the table containing the foreign key.
-		#FKCOLUMN_NAME:: fk_row[7] Name of the column containing the foreign key.		
+		#FKCOLUMN_NAME:: fk_row[7] Name of the column containing the foreign key.
 		#FK_NAME:: 		 fk_row[11] The name of the foreign key.
-							
+
 		table_name = @servertype.set_case(table_name.to_s)
 		foreignKeys = []
-        stmt = IBM_DB.foreignkeys( @connection, nil, 
-                                   @servertype.set_case(@schema), 
-                                   @servertype.set_case(table_name), "FK_TABLE")								
-		
+        stmt = IBM_DB.foreignkeys( @connection, nil,
+                                   @servertype.set_case(@schema),
+                                   @servertype.set_case(table_name), "FK_TABLE")
+
         if(stmt)
           begin
             while ( fk_row = IBM_DB.fetch_array(stmt) )
@@ -2521,11 +2521,11 @@ module ActiveRecord
 				column: fk_row[7].downcase,
 				name: fk_row[11].downcase,
 				primary_key: fk_row[3].downcase,
-			  }			  			  			  
-			  options[:on_update] = extract_foreign_key_action(fk_row[9])	
+			  }
+			  options[:on_update] = extract_foreign_key_action(fk_row[9])
 			  options[:on_delete] = extract_foreign_key_action(fk_row[10])
-			  foreignKeys << ForeignKeyDefinition.new(fk_row[6].downcase, fk_row[2].downcase, options) 
-            end			
+			  foreignKeys << ForeignKeyDefinition.new(fk_row[6].downcase, fk_row[2].downcase, options)
+            end
 
           rescue StandardError => fetch_error # Handle driver fetch errors
             error_msg = IBM_DB.getErrormsg(stmt, IBM_DB::DB_STMT )
@@ -2544,13 +2544,13 @@ module ActiveRecord
           if error_msg && !error_msg.empty?
             raise "Failed to retrieve foreign key metadata due to error: #{error_msg}"
           else
-            raise StandardError.new('An unexpected error occurred during foreign key retrieval')		
-          end		  
+            raise StandardError.new('An unexpected error occurred during foreign key retrieval')
+          end
         end
 	    #Returns the foreignKeys array
 	    return foreignKeys
       end
-    
+
       def extract_foreign_key_action(specifier) # :nodoc:
         puts_log "extract_foreign_key_action"
         case specifier
@@ -2559,7 +2559,7 @@ module ActiveRecord
 	    when 2; :nullify
         end
 	  end
-	  
+
 	  def supports_disable_referential_integrity? #:nodoc:
         true
       end
@@ -2574,9 +2574,9 @@ module ActiveRecord
       ensure
         if supports_disable_referential_integrity?
           alter_foreign_keys(tables, false)
-        end		
+        end
       end
-	  
+
 	  def alter_foreign_keys(tables, not_enforced)
         puts_log "alter_foreign_keys"
         enforced = not_enforced ? 'NOT ENFORCED' : 'ENFORCED'
@@ -2771,7 +2771,7 @@ module ActiveRecord
         index_list.each do |indexs|
           generated_index_name = index_name(indexs.table, column: indexs.columns)
           custom_index_name = indexs.name
-          
+
           if generated_index_name == custom_index_name
             add_index(new_table, indexs.columns, unique: indexs.unique)
           else
@@ -2889,7 +2889,7 @@ module ActiveRecord
       def distinct(columns, order_by)
         puts_log "distinct"
         if order_by.nil?
-          "DISTINCT #{columns}" 
+          "DISTINCT #{columns}"
         else
           "#{columns}"
         end
@@ -2939,14 +2939,14 @@ module ActiveRecord
         m.register_type %r(^int)i,       Type::Integer.new(limit: 4)
         m.register_type %r(^smallint)i,  Type::Integer.new(limit: 2)
         m.register_type %r(^tinyint)i,   Type::Integer.new(limit: 1)
-		
+
         m.alias_type %r(blob)i,      'binary'
         m.alias_type %r(clob)i,      'text'
         m.alias_type %r(timestamp)i, 'datetime'
         m.alias_type %r(numeric)i,   'decimal'
         m.alias_type %r(number)i,    'decimal'
         m.alias_type %r(double)i,    'float'
-				
+
         m.register_type(%r(decimal)i) do |sql_type|
           scale = extract_scale(sql_type)
           precision = extract_precision(sql_type)
@@ -3012,7 +3012,7 @@ module ActiveRecord
         rescue StandardError => exec_err
           # Provide details on the current XML columns support
           if exec_err.message.include?('SQLCODE=-1242') && exec_err.message.include?('42997')
-            raise StatementInvalid, 
+            raise StatementInvalid,
                   "A column that is part of a table containing an XML column cannot be dropped. \
 To remove the column, the table must be dropped and recreated without the #{column_name} column: #{exec_err}"
           else
@@ -3088,7 +3088,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
         rescue StandardError => prep_err
           if prep_err && !prep_err.message.empty?
             raise "Failed to prepare sql #{sql} due to: #{prep_err}"
-          else 
+          else
             raise "An unexpected error occurred during SQLprepare"
           end
         end
@@ -3097,7 +3097,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
       # Akhil Tcheck for if_exits added so that it will try to drop even if the table does not exit.
       def execute(sql, name = nil)
         @adapter.puts_log "execute #{sql}"
-   
+
         begin
           if @adapter.connection == nil || @adapter.connection == false
             raise ActiveRecord::ConnectionNotEstablished, "called on a closed database"
@@ -3111,7 +3111,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
             @adapter.puts_log "104 error = #{exec_err.message}"
             @adapter.puts_log "104 sql = #{sql}"
             raise StatementInvalid
-          else 
+          else
             raise
           end
         end
@@ -3130,13 +3130,13 @@ To remove the column, the table must be dropped and recreated without the #{colu
 
       def get_double_mapping
       end
-    
+
       def change_column_default(table_name, column_name, default)
       end
 
       def change_column_null(table_name, column_name, null, default)
       end
-  
+
       def set_binary_default(value)
       end
 
@@ -3228,7 +3228,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
             execute "ALTER TABLE #{table_name} ALTER #{column_name} SET DATA TYPE #{data_type}"
           rescue StandardError => exec_err
             if exec_err.message.include?('SQLCODE=-190')
-              raise StatementInvalid, 
+              raise StatementInvalid,
               "Please consult documentation for compatible data types while changing column datatype. \
                The column datatype change to [#{data_type}] is not supported by this data server: #{exec_err}"
             else
@@ -3279,9 +3279,9 @@ To remove the column, the table must be dropped and recreated without the #{colu
         @adapter.puts_log "change_column_null #{table_name.to_s} #{column_name.to_s}"
         if !default.nil?
           change_column_default(table_name, column_name, default)
-        end 
+        end
 
-        if !null.nil? 
+        if !null.nil?
           if null
             change_column_sql = "ALTER TABLE #{table_name} ALTER #{column_name} DROP NOT NULL"
           else
@@ -3292,9 +3292,9 @@ To remove the column, the table must be dropped and recreated without the #{colu
         end
 
         ensure
-          IBM_DB.free_stmt(stmt) if stmt   
+          IBM_DB.free_stmt(stmt) if stmt
       end
-    
+
       # This method returns the DB2 SQL type corresponding to the Rails
       # datetime/timestamp type
       def get_datetime_mapping
@@ -3315,7 +3315,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
         return "double"
       end
 
-      # This method generates the default blob value specified for 
+      # This method generates the default blob value specified for
       # DB2 Dataservers
       def set_binary_default(value)
         @adapter.puts_log "set_binary_default"
@@ -3328,7 +3328,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
         "BLOB('?')"
       end
 
-      # This method generates the default clob value specified for 
+      # This method generates the default clob value specified for
       # DB2 Dataservers
       def set_text_default(value)
         @adapter.puts_log "set_text_default"
@@ -3351,7 +3351,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
     end # class IBM_DB2_LUW
 
     class IBM_DB2_LUW_COBRA < IBM_DB2_LUW
-      # Cobra supports parameterised timestamp, 
+      # Cobra supports parameterised timestamp,
       # hence overriding following method to allow timestamp datatype to be parameterised
       def limit_not_supported_types
         [:integer, :double, :date, :time, :xml, :bigint]
@@ -3365,8 +3365,8 @@ To remove the column, the table must be dropped and recreated without the #{colu
         _new_column_name = new_column_name.to_s
 
         nil_condition    = _table_name.nil? || _column_name.nil? || _new_column_name.nil?
-        empty_condition  = _table_name.empty? || 
-                             _column_name.empty? || 
+        empty_condition  = _table_name.empty? ||
+                             _column_name.empty? ||
                                _new_column_name.empty? unless nil_condition
 
         if nil_condition || empty_condition
@@ -3414,15 +3414,15 @@ To remove the column, the table must be dropped and recreated without the #{colu
     end # module HostedDataServer
 
     class IBM_DB2_ZOS < IBM_DB2
-      # since v9 doesn't need, suggest putting it in HostedDataServer?      
+      # since v9 doesn't need, suggest putting it in HostedDataServer?
       def create_index_after_table(table_name,column_name)
-        @adapter.add_index(table_name, column_name, :unique => true) 
+        @adapter.add_index(table_name, column_name, :unique => true)
       end
 
       def remove_column(table_name, column_name)
         raise NotImplementedError,
         "remove_column is not supported by the DB2 for zOS data server"
-      end  
+      end
 
       #Alter table column for renaming a column
       def rename_column(table_name, column_name, new_column_name)
@@ -3431,8 +3431,8 @@ To remove the column, the table must be dropped and recreated without the #{colu
         _new_column_name = new_column_name.to_s
 
         nil_condition    = _table_name.nil? || _column_name.nil? || _new_column_name.nil?
-        empty_condition  = _table_name.empty? || 
-                             _column_name.empty? || 
+        empty_condition  = _table_name.empty? ||
+                             _column_name.empty? ||
                                _new_column_name.empty? unless nil_condition
 
         if nil_condition || empty_condition
@@ -3459,7 +3459,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
         end #End of begin
       end # End of rename_column
 
-      # DB2 z/OS only allows NULL or "" (empty) string as DEFAULT value for a BLOB column. 
+      # DB2 z/OS only allows NULL or "" (empty) string as DEFAULT value for a BLOB column.
       # For non-empty string and non-NULL values, the server returns error
       def set_binary_default(value)
         "#{value}"
@@ -3499,9 +3499,9 @@ To remove the column, the table must be dropped and recreated without the #{colu
         raise NotImplementedError,
         "DB2 for zOS data server version 8 does not support changing the column default"
       end
-     
+
     end # class IBM_DB2_ZOS_8
-    
+
     class IBM_DB2_I5 < IBM_DB2
       include HostedDataServer
     end # class IBM_DB2_I5
@@ -3518,8 +3518,8 @@ To remove the column, the table must be dropped and recreated without the #{colu
         _new_column_name = new_column_name.to_s
 
         nil_condition    = _table_name.nil? || _column_name.nil? || _new_column_name.nil?
-        empty_condition  = _table_name.empty? || 
-                             _column_name.empty? || 
+        empty_condition  = _table_name.empty? ||
+                             _column_name.empty? ||
                                _new_column_name.empty? unless nil_condition
 
         if nil_condition || empty_condition
@@ -3554,8 +3554,8 @@ To remove the column, the table must be dropped and recreated without the #{colu
         if !options[:null].nil? && !options[:null]
           execute "ALTER TABLE #{table_name} MODIFY #{column_name} #{@adapter.type_to_sql(type, options[:limit], options[:precision], options[:scale])} NOT NULL"
         else
-          execute "ALTER TABLE #{table_name} MODIFY #{column_name} #{@adapter.type_to_sql(type, options[:limit], options[:precision], options[:scale])}"  
-        end 
+          execute "ALTER TABLE #{table_name} MODIFY #{column_name} #{@adapter.type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
+        end
         if !options[:default].nil?
            change_column_default(table_name, column_name, options[:default])
         end
@@ -3563,20 +3563,20 @@ To remove the column, the table must be dropped and recreated without the #{colu
       end
 
       # IDS specific ALTER TABLE statement to add a default clause
-      # IDS requires the data type to be explicitly specified when adding the 
+      # IDS requires the data type to be explicitly specified when adding the
       # DEFAULT clause
       def change_column_default(table_name, column_name, default)
         sql_type = nil
         is_nullable = true
-        @adapter.columns(table_name).select do |col| 
+        @adapter.columns(table_name).select do |col|
            if (col.name == column_name)
 			  sql_type =  @adapter.type_to_sql(col.sql_type, col.limit, col.precision, col.scale)
-              is_nullable = col.null 
+              is_nullable = col.null
            end
         end
         # SQL statement which alters column's default value
         change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{sql_type} DEFAULT #{@adapter.quote(default)}"
-        change_column_sql << " NOT NULL" unless is_nullable 
+        change_column_sql << " NOT NULL" unless is_nullable
         stmt = execute(change_column_sql)
         reorg_table(table_name)
         # Ensures to free the resources associated with the statement
@@ -3590,7 +3590,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
           change_column_default table_name, column_name, default
         end
         sql_type = nil
-        @adapter.columns(table_name).select do |col| 
+        @adapter.columns(table_name).select do |col|
           if (col.name == column_name)
 			sql_type =  @adapter.type_to_sql(col.sql_type, col.limit, col.precision, col.scale)
           end
@@ -3599,7 +3599,7 @@ To remove the column, the table must be dropped and recreated without the #{colu
           if !null
             change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{sql_type} NOT NULL"
           else
-            change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{sql_type}"     
+            change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{sql_type}"
           end
           stmt = execute(change_column_sql)
           reorg_table(table_name)
@@ -3632,17 +3632,17 @@ To remove the column, the table must be dropped and recreated without the #{colu
       end
 
       # Method that returns the last automatically generated ID
-      # on the given +@connection+. This method is required by the +insert+ 
-      # method. IDS returns the last generated serial value in the SQLCA unlike 
-      # DB2 where the generated value has to be retrieved using the 
-      # IDENTITY_VAL_LOCAL function. We used the "stmt" parameter to identify 
+      # on the given +@connection+. This method is required by the +insert+
+      # method. IDS returns the last generated serial value in the SQLCA unlike
+      # DB2 where the generated value has to be retrieved using the
+      # IDENTITY_VAL_LOCAL function. We used the "stmt" parameter to identify
       # the statement resource from which to get the last generated value
       def last_generated_id(stmt)
         IBM_DB.get_last_serial_value(stmt)
       end
 
-      # This method throws an error when trying to create a default value on a 
-      # BLOB/CLOB column for IDS. The documentation states: "if the column is a 
+      # This method throws an error when trying to create a default value on a
+      # BLOB/CLOB column for IDS. The documentation states: "if the column is a
       # BLOB or CLOB datatype, NULL is the only valid default value."
       def set_binary_default(value)
         unless (value == 'NULL')
@@ -3650,15 +3650,15 @@ To remove the column, the table must be dropped and recreated without the #{colu
         end
       end
 
-      # For Informix Dynamic Server, we treat binary value same as we treat a 
-      # text value. We support literals by converting the insert into a dummy 
+      # For Informix Dynamic Server, we treat binary value same as we treat a
+      # text value. We support literals by converting the insert into a dummy
       # insert and an update (See handle_lobs method above)
       def set_binary_value
         "'@@@IBMBINARY@@@'"
       end
 
-      # This method throws an error when trying to create a default value on a 
-      # BLOB/CLOB column for IDS.  The documentation states: "if the column is 
+      # This method throws an error when trying to create a default value on a
+      # BLOB/CLOB column for IDS.  The documentation states: "if the column is
       # a BLOB or CLOB datatype, NULL is the only valid default value."
       def set_text_default(value)
         unless (value == 'NULL')
@@ -3696,11 +3696,11 @@ module Arel
       end
     end
   end
-  
+
   module Visitors
     class Visitor #opening and closing the class to ensure backward compatibility
     end
-	
+
     #Check Arel version
     begin
       arelVersion = Arel::VERSION.to_i
@@ -3712,7 +3712,7 @@ module Arel
       class ToSql < Arel::Visitors::Reduce #opening and closing the class to ensure backward compatibility
         # In case when using Rails-2.3.x there is no arel used due to which the constructor has to be defined explicitly
         # to ensure the same code works on any version of Rails
-      
+
         #Check Arel version
         begin
           @arelVersion = Arel::VERSION.to_i
@@ -3735,7 +3735,7 @@ module Arel
 	  class ToSql < Arel::Visitors::Visitor #opening and closing the class to ensure backward compatibility
 	    # In case when using Rails-2.3.x there is no arel used due to which the constructor has to be defined explicitly
         # to ensure the same code works on any version of Rails
-                         
+
 		#Check Arel version
 		begin
 		  @arelVersion = Arel::VERSION.to_i
@@ -3744,14 +3744,14 @@ module Arel
 		  end
 	      if(@arelVersion >= 3)
 		  def initialize connection
-			super()		 
+			super()
           @connection     = connection
           @schema_cache   = connection.schema_cache if(connection.respond_to?(:schema_cache))
           @quoted_tables  = {}
           @quoted_columns = {}
           @last_column    = nil
         end
-			  
+
       end
     end
   end
@@ -3764,7 +3764,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Offset(o, collector)
-        collector << " OFFSET "
+        #collector << " OFFSET "
         visit o.expr, collector
       end
 
@@ -3787,7 +3787,7 @@ module Arel
         end
         collector
       end
-      
+
       def visit_Arel_Nodes_SelectStatement o, collector
         if o.with
           collector = visit o.with, collector
@@ -3798,7 +3798,7 @@ module Arel
           visit_Arel_Nodes_SelectCore(x, c)
         }
 
-        unless o.orders.empty?          
+        unless o.orders.empty?
           collector << " ORDER BY "
           len = o.orders.length - 1
           o.orders.each_with_index { |x, i|
