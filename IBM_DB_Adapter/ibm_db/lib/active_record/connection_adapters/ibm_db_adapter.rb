@@ -2662,16 +2662,16 @@ module ActiveRecord
       end
 
 	  def data_source_sql(name = nil, type: nil)
-        puts_log "data_source_sql"
-		sql = +"SELECT tabname FROM (SELECT tabname, type FROM syscat.tables "
-		sql << " WHERE tabschema = #{quote(@schema.upcase)}) subquery"
-		if type || name
-		  conditions = []
-		  conditions << "subquery.type = #{quote(type.upcase)}" if type
-		  conditions << "subquery.tabname = #{quote(name.upcase)}" if name
-		  sql << " WHERE #{conditions.join(" AND ")}"
-		end
-		sql
+      puts_log "data_source_sql"
+      sql = +"SELECT tabname FROM (SELECT tabname, tabtype FROM systables "
+      sql << " WHERE upper(owner) = #{quote(@schema.upcase)}) subquery"
+      if type || name
+        conditions = []
+        conditions << "subquery.tabtype = #{quote(type.upcase)}" if type
+        conditions << "subquery.tabname = #{quote(name.upcase)}" if name
+        sql << " WHERE #{conditions.join(" AND ")}"
+      end
+      sql
 	  end
 
       # Returns an array of table names defined in the database.
