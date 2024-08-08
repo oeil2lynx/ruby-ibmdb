@@ -459,7 +459,7 @@ module ActiveRecord
 
     module ColumnMethods
       def primary_key(name, type = :primary_key, **options)
-        puts_log "16"
+        puts "16"
         column(name, type, options.merge(primary_key: true))
       end
 
