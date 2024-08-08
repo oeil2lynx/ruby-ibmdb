@@ -3764,7 +3764,7 @@ module Arel
       end
 
       def visit_Arel_Nodes_Offset(o, collector)
-        #collector << " OFFSET "
+        collector << " SKIP "
         visit o.expr, collector
       end
 
@@ -3788,6 +3788,31 @@ module Arel
         collector
       end
 
+      def visit_Arel_Nodes_SelectCore(o, collector, offset)
+        collector << "SELECT"
+
+        if (offset)
+          visit_Arel_Nodes_Offset(offset, collector)
+        end
+
+        collector = collect_optimizer_hints(o, collector)
+        collector = maybe_visit o.set_quantifier, collector
+
+        collect_nodes_for o.projections, collector, " "
+
+        if o.source && !o.source.empty?
+          collector << " FROM "
+          collector = visit o.source, collector
+        end
+
+        collect_nodes_for o.wheres, collector, " WHERE ", " AND "
+        collect_nodes_for o.groups, collector, " GROUP BY "
+        collect_nodes_for o.havings, collector, " HAVING ", " AND "
+        collect_nodes_for o.windows, collector, " WINDOW "
+
+        maybe_visit o.comment, collector
+      end
+    
       def visit_Arel_Nodes_SelectStatement o, collector
         if o.with
           collector = visit o.with, collector
@@ -3795,7 +3820,7 @@ module Arel
         end
 
         collector = o.cores.inject(collector) { |c,x|
-          visit_Arel_Nodes_SelectCore(x, c)
+          visit_Arel_Nodes_SelectCore(x, c, o.offset)
         }
 
         unless o.orders.empty?
@@ -3809,9 +3834,8 @@ module Arel
 
         if (o.offset && o.limit)
           visit_Arel_Nodes_Limit(o.limit, collector)
-          visit_Arel_Nodes_Offset(o.offset, collector)
         elsif (o.offset && o.limit.nil?)
-          collector << " OFFSET "
+          collector << " SKIP "
           visit o.offset.expr, collector
           collector << " ROWS "
           maybe_visit o.lock, collector
