@@ -9578,7 +9578,7 @@ static VALUE _ruby_ibm_db_bind_fetch_helper(ibm_db_fetch_helper_args *data)
            return Qnil; 
           }
 
-          if ((atof(row_data->str_val) - atol(row_data->str_val)) > 0)
+          if ((atof(row_data->str_val) - atol(row_data->str_val)) > 0 || (atof(row_data->str_val) - atol(row_data->str_val)) < 0)
           {
             strcpy(tmpStr, "BigDecimal(\'");
             strcat(tmpStr, row_data->str_val);
